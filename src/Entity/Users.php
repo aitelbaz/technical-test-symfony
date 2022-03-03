@@ -3,17 +3,20 @@
 namespace App\Entity;
 
 use App\Repository\UsersRepository;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Security\User\JWTUserInterface;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
-use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Serializer\Annotation\SerializedName;
 
 #[ORM\Entity(repositoryClass: UsersRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    collectionOperations: ['post'],
+    itemOperations: [],
+)]
 class Users implements UserInterface, JWTUserInterface
 {
     #[ORM\Id]
@@ -25,17 +28,25 @@ class Users implements UserInterface, JWTUserInterface
     private $email;
 
     #[ORM\Column(type: 'json')]
-    #[Groups("user:read")]
+    #[Groups("users:read")]
     private $roles = [];
 
     #[ORM\Column(type: 'string')]
     private $password;
 
     
-    #[Groups("user:write")]
+    #[Groups("users:write")]
     #[SerializedName("password")]
      
     private $plainPassword;
+
+    #[ORM\OneToMany(mappedBy: 'Users', targetEntity: ToDoList::class)]
+    private $toDoLists;
+
+    public function __construct()
+    {
+        $this->toDoLists = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -128,4 +139,6 @@ class Users implements UserInterface, JWTUserInterface
     {
 
     }
+
+
 }
