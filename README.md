@@ -23,10 +23,11 @@ docker-compose up -d
 cd ..
 ```
 
-### Installer SSL JWT et créer les tables dans la base de donnée 
+### Installer VENDOR && SSL JWT et créer les tables dans la base de donnée 
 
 
 ```
+composer install
 php bin/console lexie:jwt:generate-keypair
 php bin/console doctrine:migrations:migrate
 ```

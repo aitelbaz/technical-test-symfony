@@ -29,7 +29,7 @@ security:
         api:
             pattern: ^/api/
             stateless: true
-            anonymous: true
+            anonymous: false
             provider: jwt
             guard:
                 authenticators:
@@ -38,3 +38,4 @@ security:
     access_control:
         - { path: ^/api/docs, roles: IS_AUTHENTICATED_ANONYMOUSLY } # Allows accessing the Swagger UI
         - { path: ^/api/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
