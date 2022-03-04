@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\UsersRepository;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\ManagerRegistry;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Security\User\JWTUserInterface;
 use ApiPlatform\Core\Annotation\ApiResource;
@@ -15,7 +16,7 @@ use Symfony\Component\Serializer\Annotation\SerializedName;
 #[ORM\Entity(repositoryClass: UsersRepository::class)]
 #[ApiResource(
     collectionOperations: ['post'],
-    itemOperations: [],
+    itemOperations: ['get'],
 )]
 class Users implements UserInterface, JWTUserInterface
 {
@@ -43,14 +44,24 @@ class Users implements UserInterface, JWTUserInterface
     #[ORM\OneToMany(mappedBy: 'Users', targetEntity: ToDoList::class)]
     private $toDoLists;
 
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Task::class)]
+    private $listToDo;
+
     public function __construct()
     {
         $this->toDoLists = new ArrayCollection();
+        $this->listToDo = new ArrayCollection();
     }
 
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function setId(?int $id): self
+    {
+        $this->id = $id;
+        return $this;
     }
 
     public function getEmail(): ?string
@@ -135,10 +146,70 @@ class Users implements UserInterface, JWTUserInterface
     {
         $this->plainPassword = null;
     }
-    public static function createFromPayload($id, array $payload)
+    public static function createFromPayload($identifiant, array $payload): Users
     {
-
+        $user = new Users();
+        $user->setId($identifiant);
+        return $user;
     }
 
+    /**
+     * @return Collection<int, ToDoList>
+     */
+    public function getToDoLists(): Collection
+    {
+        return $this->toDoLists;
+    }
 
+    public function addToDoList(ToDoList $toDoList): self
+    {
+        if (!$this->toDoLists->contains($toDoList)) {
+            $this->toDoLists[] = $toDoList;
+            $toDoList->setUsers($this);
+        }
+
+        return $this;
+    }
+
+    public function removeToDoList(ToDoList $toDoList): self
+    {
+        if ($this->toDoLists->removeElement($toDoList)) {
+            // set the owning side to null (unless already changed)
+            if ($toDoList->getUsers() === $this) {
+                $toDoList->setUsers(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Task>
+     */
+    public function getListToDo(): Collection
+    {
+        return $this->listToDo;
+    }
+
+    public function addListToDo(Task $listToDo): self
+    {
+        if (!$this->listToDo->contains($listToDo)) {
+            $this->listToDo[] = $listToDo;
+            $listToDo->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeListToDo(Task $listToDo): self
+    {
+        if ($this->listToDo->removeElement($listToDo)) {
+            // set the owning side to null (unless already changed)
+            if ($listToDo->getUser() === $this) {
+                $listToDo->setUser(null);
+            }
+        }
+
+        return $this;
+    }
 }
